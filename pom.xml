@@ -81,6 +81,20 @@
       <version>1.2.0</version>
       <scope>provided</scope>
   </dependency>
+    <!-- Factions -->
+    <dependency>
+      <groupId>com.massivecraft</groupId>
+      <artifactId>Factions</artifactId>
+      <version>1.2.3</version>
+      <scope>provided</scope>
+  </dependency>
+  <!-- massivecore -->
+    <dependency>
+      <groupId>com.massivecraft</groupId>
+      <artifactId>massivecore</artifactId>
+      <version>1.2.3</version>
+      <scope>provided</scope>
+  </dependency>
   <!-- GriefPrevention -->
     <dependency>
       <groupId>com.github.TechFortress</groupId>
@@ -163,6 +177,13 @@
       <groupId>com.songoda</groupId>
       <artifactId>kingdoms</artifactId>
       <version>1.2.3</version>
+      <scope>provided</scope>
+    </dependency>
+   <!-- XKingdoms -->
+    <dependency>
+      <groupId>org.kingdoms</groupId>
+      <artifactId>XKingdoms</artifactId>
+      <version>1.0</version>
       <scope>provided</scope>
     </dependency>
     <!-- PlaceholderAPI -->
