@@ -1010,7 +1010,18 @@ public abstract class CoreAbility implements Ability {
 							Validate.isTrue(get instanceof Number, "The field " + field.getName() + " cannot algebraically be modified.");
 							final Number oldValue = (Number) field.get(this);
 							final Number newValue = pair.getRight().performModification(oldValue, pair.getLeft());
-							field.set(this, newValue);
+							switch(attribute) {
+								case "Cooldown":
+									field.set(this, Math.round(newValue.doubleValue()));
+									break;
+								case "Range":
+								case "Damage":
+									field.set(this, Integer.parseInt(Math.round(newValue.doubleValue()) + ""));
+									break;
+								default:
+									field.set(this, newValue);
+									break;
+							}
 						}
 					}
 				}
