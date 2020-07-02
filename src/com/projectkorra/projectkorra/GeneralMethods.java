@@ -56,6 +56,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.kingdoms.main.config.KingdomsConfig.Ranks;
 
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.api.ResidenceInterface;
@@ -137,15 +138,23 @@ import br.net.fabiozumbi12.RedProtect.Bukkit.Region;
 import br.net.fabiozumbi12.RedProtect.Bukkit.API.RedProtectAPI;
 import me.markeh.factionsframework.entities.FPlayer;
 import me.markeh.factionsframework.entities.FPlayers;
-import me.markeh.factionsframework.entities.Faction;
 import me.markeh.factionsframework.entities.Factions;
-import me.markeh.factionsframework.enums.Rel;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+
+import com.massivecraft.factions.AccessStatus;
+import com.massivecraft.factions.Rel;
+import com.massivecraft.factions.entity.BoardColl;
+import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.factions.entity.FactionColl;
+import com.massivecraft.factions.entity.MPerm;
+import com.massivecraft.factions.entity.MPlayer;
+import com.massivecraft.factions.entity.Rank;
+import com.massivecraft.massivecore.ps.PS;
 
 public class GeneralMethods {
 
@@ -1531,7 +1540,8 @@ public class GeneralMethods {
 					}
 				}
 			}
-
+			//Returns true if you can't build
+			/*
 			if (facsfw != null && respectFactions) {
 				final FPlayer fPlayer = FPlayers.getBySender(player);
 				final Faction faction = Factions.getFactionAt(location);
@@ -1540,6 +1550,14 @@ public class GeneralMethods {
 				if (!(faction.isNone() || fPlayer.getFaction().equals(faction) || relation == Rel.ALLY)) {
 					return true;
 				}
+			}*/
+			
+			if (facsfw != null && respectFactions) {
+				final MPlayer mplayer = MPlayer.get(player);
+				final Faction faction = BoardColl.get().getFactionAt(PS.valueOf(location));		
+				Faction pfaction = mplayer.getFaction();
+				if (!((pfaction.equals(faction) && !mplayer.getRank().getName().equals("Recruit")) || faction.isPlayerPermitted(mplayer, MPerm.ID_BUILD) || faction.isNone()))
+					return true;
 			}
 
 			if (twnp != null && respectTowny) {
