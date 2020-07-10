@@ -39,6 +39,11 @@ import com.google.common.reflect.ClassPath;
 import com.griefcraft.lwc.LWC;
 import com.griefcraft.lwc.LWCPlugin;
 import com.griefcraft.model.Protection;
+import com.massivecraft.factions.entity.MConf;
+import com.massivecraft.factions.entity.MPerm;
+import com.massivecraft.factions.entity.MPlayer;
+import com.massivecraft.massivecore.ps.PS;
+
 import com.palmergames.bukkit.towny.Towny;
 import com.palmergames.bukkit.towny.TownyMessaging;
 import com.palmergames.bukkit.towny.TownySettings;
@@ -87,7 +92,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-
 import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.AddonAbility;
@@ -136,11 +140,6 @@ import com.projectkorra.projectkorra.waterbending.WaterSpout;
 import br.net.fabiozumbi12.RedProtect.Bukkit.RedProtect;
 import br.net.fabiozumbi12.RedProtect.Bukkit.Region;
 import br.net.fabiozumbi12.RedProtect.Bukkit.API.RedProtectAPI;
-import me.markeh.factionsframework.entities.FPlayer;
-import me.markeh.factionsframework.entities.FPlayers;
-import me.markeh.factionsframework.entities.Faction;
-import me.markeh.factionsframework.entities.Factions;
-import me.markeh.factionsframework.enums.Rel;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -1482,7 +1481,7 @@ public class GeneralMethods {
 
 		final Plugin wgp = pm.getPlugin("WorldGuard");
 		//final Plugin psp = pm.getPlugin("PreciousStones");
-		final Plugin facsfw = pm.getPlugin("FactionsFramework");
+		final Plugin facsfw = pm.getPlugin("Factions");
 		final Plugin twnp = pm.getPlugin("Towny");
 		final Plugin gpp = pm.getPlugin("GriefPrevention");
 		final Plugin lwc = pm.getPlugin("LWC");
@@ -1540,7 +1539,8 @@ public class GeneralMethods {
 					}
 				}
 			}
-
+			//Returns true if you can't build
+			/*
 			if (facsfw != null && respectFactions) {
 				final FPlayer fPlayer = FPlayers.getBySender(player);
 				final Faction faction = Factions.getFactionAt(location);
@@ -1549,6 +1549,12 @@ public class GeneralMethods {
 				if (!(faction.isNone() || fPlayer.getFaction().equals(faction) || relation == Rel.ALLY)) {
 					return true;
 				}
+			}*/
+			
+			if (facsfw != null && respectFactions) {
+				final MPlayer mplayer = MPlayer.get(player);
+				final PS ps = PS.valueOf(location);
+				return !mplayer.isOverriding() && !MConf.get().playersWhoBypassAllProtection.contains(player.getName()) && MPerm.getPermBuild().has(mplayer, ps, false);
 			}
 
 			if (twnp != null && respectTowny) {
@@ -1916,7 +1922,7 @@ public class GeneralMethods {
 
 		final Plugin wgp = pm.getPlugin("WorldGuard");
 		final Plugin psp = pm.getPlugin("PreciousStones");
-		final Plugin fcp = pm.getPlugin("FactionsFramework");
+		final Plugin fcp = pm.getPlugin("Factions");
 		final Plugin twnp = pm.getPlugin("Towny");
 		final Plugin gpp = pm.getPlugin("GriefPrevention");
 		final Plugin lwc = pm.getPlugin("LWC");
@@ -1931,7 +1937,7 @@ public class GeneralMethods {
 			writeToDebug("PreciousStones v" + psp.getDescription().getVersion());
 		}
 		if (fcp != null && respectFactions) {
-			writeToDebug("FactionsFramework v" + fcp.getDescription().getVersion());
+			writeToDebug("Factions v" + fcp.getDescription().getVersion());
 		}
 		if (twnp != null && respectTowny) {
 			writeToDebug("Towny v" + twnp.getDescription().getVersion());
