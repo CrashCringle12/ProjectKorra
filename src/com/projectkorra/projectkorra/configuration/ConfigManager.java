@@ -442,6 +442,8 @@ public class ConfigManager {
 
 			final ArrayList<String> earthBlocks = new ArrayList<String>();
 			earthBlocks.add(Material.DIRT.toString());
+			earthBlocks.add(Material.COARSE_DIRT.toString());
+			earthBlocks.add(Material.PODZOL.toString());
 			earthBlocks.add(Material.MYCELIUM.toString());
 			earthBlocks.add(Material.STONE.toString());
 			earthBlocks.add(Material.GRAVEL.toString());
@@ -520,6 +522,7 @@ public class ConfigManager {
 			plantBlocks.add(Material.FERN.toString());
 			plantBlocks.add(Material.LILY_OF_THE_VALLEY.toString());
 			plantBlocks.add(Material.WITHER_ROSE.toString());
+			plantBlocks.add(Material.CORNFLOWER.toString());
 			plantBlocks.add(Material.LARGE_FERN.toString());
 			plantBlocks.add(Material.RED_MUSHROOM.toString());
 			plantBlocks.add(Material.RED_MUSHROOM_BLOCK.toString());

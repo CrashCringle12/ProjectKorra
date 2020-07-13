@@ -1,12 +1,8 @@
 package com.projectkorra.projectkorra.firebending;
 
-
-
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -61,7 +57,7 @@ public class BlazeArc extends FireAbility {
 				}
 			}
 		}
-		
+
 		if (isIgnitable(block)) {
 			createTempFire(block.getLocation(), DISSIPATE_REMOVE_TIME);
 		}
@@ -108,7 +104,7 @@ public class BlazeArc extends FireAbility {
 				return blockArr[i];
 			}
 		}
-		
+
 		return null;
 	}
 

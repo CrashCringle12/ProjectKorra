@@ -90,7 +90,6 @@ public class WallOfFire extends FireAbility {
 		durationMod = (int) (bPlayer.canUseSubElement(SubElement.BLUE_FIRE) ? (duration / BlueFireAbility.getCooldownFactor() - duration) + durationMod : durationMod);
 		damageMod = (int) (bPlayer.canUseSubElement(SubElement.BLUE_FIRE) ? (BlueFireAbility.getDamageFactor() * damage - damage) + damageMod : damageMod);
 
-
 		if (this.bPlayer.isAvatarState()) {
 			this.width = getConfig().getInt("Abilities.Avatar.AvatarState.Fire.WallOfFire.Width");
 			this.height = getConfig().getInt("Abilities.Avatar.AvatarState.Fire.WallOfFire.Height");
@@ -103,7 +102,6 @@ public class WallOfFire extends FireAbility {
 		this.height += heightMod;
 		this.duration += durationMod;
 		this.damage += damageMod;
-
 
 		this.time = System.currentTimeMillis();
 		final Block block = this.origin.getBlock();
@@ -166,8 +164,6 @@ public class WallOfFire extends FireAbility {
 				continue;
 			}
 			playFirebendingParticles(block.getLocation(), 3, 0.6, 0.6, 0.6);
-
-
 			if (this.random.nextInt(7) == 0) {
 				playFirebendingSound(block.getLocation());
 			}

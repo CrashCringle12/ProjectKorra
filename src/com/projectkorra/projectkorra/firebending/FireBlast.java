@@ -76,11 +76,9 @@ public class FireBlast extends FireAbility {
 		this.location = location.clone();
 		this.origin = location.clone();
 		this.direction = direction.clone().normalize();
-		
-		
+
 		// The following code determines the total additive modifier between Blue Fire & Day Modifiers
 		this.applyModifiers();
-
 
 		this.start();
 	}
@@ -103,17 +101,14 @@ public class FireBlast extends FireAbility {
 		this.direction = player.getEyeLocation().getDirection().normalize();
 		this.location = this.location.add(this.direction.clone());
 		
-		
 		// The following code determines the total additive modifier between Blue Fire & Day Modifiers
-		
 		this.applyModifiers();
 
 		this.start();
 		this.bPlayer.addCooldown("FireBlast", this.cooldown);
 	}
-	
+
 	private void applyModifiers() {
-		// TODO Auto-generated method stub
 		int damageMod = 0;
 		int rangeMod = 0;
 
@@ -126,7 +121,6 @@ public class FireBlast extends FireAbility {
 		this.range += rangeMod;
 		this.damage += damageMod;
 	}
-
 
 	private void setFields() {
 		this.isFireBurst = true;
@@ -220,18 +214,18 @@ public class FireBlast extends FireAbility {
 				final Smoker smoker = (Smoker) block.getState();
 				smoker.setBurnTime((short) 800);
 				smoker.update();
-		    } else if (block.getType() == Material.BLAST_FURNACE && this.powerFurnace) {
-		    	final BlastFurnace blastF = (BlastFurnace) block.getState();
+			} else if (block.getType() == Material.BLAST_FURNACE && this.powerFurnace) {
+				final BlastFurnace blastF = (BlastFurnace) block.getState();
 				blastF.setBurnTime((short) 800);
 				blastF.update();
-		    } else if (block instanceof Campfire) {
-		    	final Campfire campfire = (Campfire) block.getBlockData();
-		    	if(!campfire.isLit()) {
-		    		if(block.getType() != Material.SOUL_CAMPFIRE || bPlayer.canUseSubElement(SubElement.BLUE_FIRE)) {
-		    			campfire.setLit(true);
-		    		}
-		    	}
-		    } else if (isIgnitable(block.getRelative(BlockFace.UP))) {
+			} else if (block instanceof Campfire) {
+				final Campfire campfire = (Campfire) block.getBlockData();
+				if(!campfire.isLit()) {
+					if(block.getType() != Material.SOUL_CAMPFIRE || bPlayer.canUseSubElement(SubElement.BLUE_FIRE)) {
+						campfire.setLit(true);
+					}
+				}
+			} else if (isIgnitable(block.getRelative(BlockFace.UP))) {
 				if ((this.isFireBurst && this.fireBurstIgnite) || !this.isFireBurst) {
 					this.ignite(this.location);
 				}
@@ -461,6 +455,5 @@ public class FireBlast extends FireAbility {
 	public void setFireBurst(final boolean isFireBurst) {
 		this.isFireBurst = isFireBurst;
 	}
-
 
 }
