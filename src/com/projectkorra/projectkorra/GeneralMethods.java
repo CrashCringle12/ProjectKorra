@@ -18,6 +18,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +42,9 @@ import com.google.common.reflect.ClassPath;
 import com.griefcraft.lwc.LWC;
 import com.griefcraft.lwc.LWCPlugin;
 import com.griefcraft.model.Protection;
+import com.massivecraft.factions.Rel;
+import com.massivecraft.factions.entity.BoardColl;
+import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.MPerm;
 import com.massivecraft.factions.entity.MPlayer;
@@ -1550,11 +1556,25 @@ public class GeneralMethods {
 					return true;
 				}
 			}*/
-			
+
 			if (facsfw != null && respectFactions) {
 				final MPlayer mplayer = MPlayer.get(player);
-				final PS ps = PS.valueOf(location);
-				return !mplayer.isOverriding() && !MConf.get().playersWhoBypassAllProtection.contains(player.getName()) && MPerm.getPermBuild().has(mplayer, ps, false);
+				final Faction faction = BoardColl.get().getFactionAt(PS.valueOf(location));	
+				 LocalDate date = LocalDate.now();
+			     DayOfWeek day = DayOfWeek.of(date.get(ChronoField.DAY_OF_WEEK));
+			     switch (day) {
+			         case SATURDAY:
+			         case SUNDAY:
+						if (!(mplayer.isOverriding() || MConf.get().playersWhoBypassAllProtection.contains(player.getName()) || 
+								faction.isPlayerPermitted(mplayer, MPerm.ID_BUILD) || faction.isNone() || mplayer.getFaction().getRelationTo(faction) == Rel.ENEMY)) {
+							return true;
+						}
+			         default:
+						if (!(mplayer.isOverriding() || MConf.get().playersWhoBypassAllProtection.contains(player.getName()) || 
+								faction.isPlayerPermitted(mplayer, MPerm.ID_BUILD) || faction.isNone())) {
+							return true;
+						}
+			     }
 			}
 
 			if (twnp != null && respectTowny) {
