@@ -330,7 +330,7 @@ public class EarthGrab extends EarthAbility {
 		if (System.currentTimeMillis() >= this.lastHit + this.interval) {
 			this.trapHP -= 1;
 			this.lastHit = System.currentTimeMillis();
-			ParticleEffect.BLOCK_CRACK.display(this.target.getLocation().clone().add(0, 1, 0), 17, 0.1, 0.5, 0.1, this.target.getLocation().getBlock().getRelative(BlockFace.DOWN).getBlockData());
+			ParticleEffect.BLOCK_CRACK.display(this.target.getLocation().clone().add(0, 1, 0), 7, 0.06, 0.3, 0.06, this.target.getLocation().getBlock().getRelative(BlockFace.DOWN).getBlockData());
 			playEarthbendingSound(this.target.getLocation());
 		}
 	}
