@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import co.aikar.timings.lib.MCTiming;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -61,6 +59,7 @@ import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -179,6 +178,7 @@ import com.projectkorra.projectkorra.waterbending.Torrent;
 import com.projectkorra.projectkorra.waterbending.WaterBubble;
 import com.projectkorra.projectkorra.waterbending.WaterManipulation;
 import com.projectkorra.projectkorra.waterbending.WaterSpout;
+import com.projectkorra.projectkorra.waterbending.WaterSpoutWave;
 import com.projectkorra.projectkorra.waterbending.blood.Bloodbending;
 import com.projectkorra.projectkorra.waterbending.combo.IceBullet;
 import com.projectkorra.projectkorra.waterbending.healing.HealingWaters;
@@ -190,6 +190,8 @@ import com.projectkorra.projectkorra.waterbending.multiabilities.WaterArms;
 import com.projectkorra.projectkorra.waterbending.passive.FastSwim;
 import com.projectkorra.projectkorra.waterbending.passive.HydroSink;
 
+import co.aikar.timings.lib.MCTiming;
+
 public class PKListener implements Listener {
 	ProjectKorra plugin;
 
@@ -197,6 +199,7 @@ public class PKListener implements Listener {
 	private static final HashMap<Player, String> BENDING_PLAYER_DEATH = new HashMap<>(); // Player killed by Bending.
 	private static final List<UUID> RIGHT_CLICK_INTERACT = new ArrayList<UUID>(); // Player right click block.
 	private static final ArrayList<UUID> TOGGLED_OUT = new ArrayList<>(); // Stands for toggled = false while logging out.
+	private static final List<Player> PLAYER_DROPPED_ITEM = new ArrayList<>(); // Player dropped an item.
 	private static final Map<Player, Integer> JUMPS = new HashMap<>();
 
 	private static MCTiming TimingPhysicsWaterManipulationCheck, TimingPhysicsEarthPassiveCheck, TimingPhysicsIlluminationTorchCheck, TimingPhysicsEarthAbilityCheck, TimingPhysicsAirTempBlockBelowFallingBlockCheck;
@@ -228,11 +231,22 @@ public class PKListener implements Listener {
 		final String abil = bPlayer.getBoundAbilityName();
 		CoreAbility ability = null;
 
+		if (Illumination.isIlluminationTorch(block.getRelative(BlockFace.UP))) {
+			TempBlock torch = TempBlock.get(block.getRelative(BlockFace.UP));
+			Player user = Illumination.getBlocks().get(torch);
+			Illumination illumination = CoreAbility.getAbility(user, Illumination.class);
+			if (illumination != null) {
+				illumination.remove();
+			}
+		}
+
 		if (bPlayer.isElementToggled(Element.WATER) && bPlayer.isToggled()) {
 			if (abil != null && abil.equalsIgnoreCase("Surge")) {
 				ability = CoreAbility.getAbility(SurgeWall.class);
 			} else if (abil != null && abil.equalsIgnoreCase("Torrent")) {
 				ability = CoreAbility.getAbility(Torrent.class);
+			} else if (abil != null && abil.equalsIgnoreCase("WaterSpout")) {
+				ability = CoreAbility.getAbility(WaterSpoutWave.class);
 			} else {
 				ability = CoreAbility.getAbility(abil);
 			}
@@ -392,7 +406,7 @@ public class PKListener implements Listener {
 		}
 
 		try (MCTiming timing = TimingPhysicsIlluminationTorchCheck.startTiming()) {
-			if (Illumination.isIlluminationTorch(block)) {
+			if (Illumination.isIlluminationTorch(block) || Illumination.isIlluminationTorch(block.getRelative(BlockFace.UP))) {
 				event.setCancelled(true);
 				return;
 			}
@@ -546,20 +560,12 @@ public class PKListener implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onEntityDeath(final EntityDeathEvent event) {
 		if (TempArmor.hasTempArmor(event.getEntity())) {
-			final TempArmor armor = TempArmor.getVisibleTempArmor(event.getEntity());
-
-			if (armor != null) {
-				final List<ItemStack> newDrops = armor.filterArmor(event.getDrops());
-				event.getDrops().clear();
-				event.getDrops().addAll(newDrops);
+			for (final TempArmor tarmor : TempArmor.getTempArmorList(event.getEntity())) {
+				tarmor.revert(event.getDrops());
 			}
 
 			if (MetalClips.isControlled(event.getEntity())) {
 				event.getDrops().add(new ItemStack(Material.IRON_INGOT, MetalClips.getTargetToAbility().get(event.getEntity()).getMetalClipsCount()));
-			}
-
-			for (final TempArmor tarmor : TempArmor.getTempArmorList(event.getEntity())) {
-				tarmor.revert();
 			}
 		}
 
@@ -714,7 +720,7 @@ public class PKListener implements Listener {
 
 		if (entity instanceof LivingEntity && TempArmor.hasTempArmor((LivingEntity) entity)) {
 			for (final TempArmor armor : TempArmor.getTempArmorList((LivingEntity) entity)) {
-				armor.revert();
+				armor.revert(null);
 			}
 		}
 
@@ -1013,7 +1019,7 @@ public class PKListener implements Listener {
 		if (event.getKeepInventory()) {
 			if (TempArmor.hasTempArmor(event.getEntity())) {
 				for (final TempArmor armor : TempArmor.getTempArmorList(event.getEntity())) {
-					armor.revert();
+					armor.revert(event.getDrops());
 				}
 			}
 		} else {
@@ -1060,6 +1066,24 @@ public class PKListener implements Listener {
 				BENDING_PLAYER_DEATH.remove(event.getEntity());
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onPlayerItemDrop(PlayerDropItemEvent event) {
+		Player player = event.getPlayer();
+		BendingPlayer bPlayer = BendingPlayer.getBendingPlayer(player);
+
+		if (event.isCancelled())
+			return;
+
+		if (bPlayer == null)
+			return;
+
+		if (bPlayer.getBoundAbility() == null)
+			return;
+
+		if (!PLAYER_DROPPED_ITEM.contains(player))
+			PLAYER_DROPPED_ITEM.add(player);
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -1350,7 +1374,7 @@ public class PKListener implements Listener {
 
 		if (TempArmor.hasTempArmor(player)) {
 			for (final TempArmor armor : TempArmor.getTempArmorList(player)) {
-				armor.revert();
+				armor.revert(null);
 			}
 		}
 
@@ -1588,6 +1612,11 @@ public class PKListener implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerSwing(final PlayerInteractEvent event) {
 		final Player player = event.getPlayer();
+
+		if (PLAYER_DROPPED_ITEM.contains(player)) {
+			PLAYER_DROPPED_ITEM.remove(player);
+			return;
+		}
 		if (event.getHand() != EquipmentSlot.HAND) {
 			return;
 		}
@@ -1868,6 +1897,33 @@ public class PKListener implements Listener {
 		for (final MetalClips metalClips : CoreAbility.getAbilities(MetalClips.class)) {
 			if (metalClips.getTrackedIngots().contains(event.getItem())) {
 				event.setCancelled(true);
+			}
+		}
+		
+		if (event.isCancelled()) {
+			return;
+		}
+		
+		if (event.getEntity() instanceof LivingEntity) {
+			LivingEntity lent = (LivingEntity) event.getEntity();
+			
+			if (TempArmor.hasTempArmor(lent)) {
+				TempArmor armor = TempArmor.getVisibleTempArmor(lent);
+				ItemStack is = event.getItem().getItemStack();
+				int index = GeneralMethods.getArmorIndex(is.getType());
+				
+				if (index == -1) {
+					return;
+				}
+				
+				event.setCancelled(true);
+				ItemStack prev = armor.getOldArmor()[index];
+				
+				if (GeneralMethods.compareArmor(is.getType(), prev.getType()) > 0) {
+					event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), prev);
+					armor.getOldArmor()[index] = is;
+					event.getItem().remove();
+				}
 			}
 		}
 	}
