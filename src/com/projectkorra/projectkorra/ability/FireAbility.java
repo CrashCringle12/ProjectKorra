@@ -182,7 +182,6 @@ public abstract class FireAbility extends ElementalAbility {
 			final float pitch = (float) getConfig().getDouble("Properties.Fire.FireSound.Pitch");
 
 			Sound sound = Sound.BLOCK_FIRE_AMBIENT;
-
 			try {
 				sound = Sound.valueOf(getConfig().getString("Properties.Fire.FireSound.Sound"));
 			} catch (final IllegalArgumentException exception) {
@@ -207,7 +206,6 @@ public abstract class FireAbility extends ElementalAbility {
 			final float pitch = (float) getConfig().getDouble("Properties.Fire.LightningSound.Pitch");
 
 			Sound sound = Sound.ENTITY_CREEPER_HURT;
-
 			try {
 				sound = Sound.valueOf(getConfig().getString("Properties.Fire.LightningSound.Sound"));
 			} catch (final IllegalArgumentException exception) {
