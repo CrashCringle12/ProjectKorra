@@ -18,9 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,36 +39,15 @@ import com.google.common.reflect.ClassPath;
 import com.griefcraft.lwc.LWC;
 import com.griefcraft.lwc.LWCPlugin;
 import com.griefcraft.model.Protection;
-import com.massivecraft.factions.Rel;
-import com.massivecraft.factions.entity.BoardColl;
-import com.massivecraft.factions.entity.Faction;
-import com.massivecraft.factions.entity.MConf;
-import com.massivecraft.factions.entity.MPerm;
-import com.massivecraft.factions.entity.MPlayer;
-import com.massivecraft.massivecore.ps.PS;
-
-import com.palmergames.bukkit.towny.Towny;
-import com.palmergames.bukkit.towny.TownyMessaging;
-import com.palmergames.bukkit.towny.TownySettings;
-import com.palmergames.bukkit.towny.object.Coord;
-import com.palmergames.bukkit.towny.object.PlayerCache;
-import com.palmergames.bukkit.towny.object.PlayerCache.TownBlockStatus;
-import com.palmergames.bukkit.towny.object.TownyPermission;
-import com.palmergames.bukkit.towny.object.TownyUniverse;
-import com.palmergames.bukkit.towny.object.TownyWorld;
-import com.palmergames.bukkit.towny.object.WorldCoord;
+import com.palmergames.bukkit.towny.object.TownyPermission.ActionType;
 import com.palmergames.bukkit.towny.utils.PlayerCacheUtil;
-import com.palmergames.bukkit.towny.war.flagwar.TownyWar;
-import com.palmergames.bukkit.towny.war.flagwar.TownyWarConfig;
+
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.songoda.kingdoms.constants.land.Land;
-import com.songoda.kingdoms.constants.land.SimpleChunkLocation;
-import com.songoda.kingdoms.constants.player.KingdomPlayer;
-import com.songoda.kingdoms.manager.game.GameManagement;
+
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -98,6 +74,15 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.kingdoms.constants.kingdom.Kingdom;
+import org.kingdoms.constants.kingdom.model.KingdomRelation;
+import org.kingdoms.constants.land.Invasion;
+import org.kingdoms.constants.land.Land;
+import org.kingdoms.constants.land.structures.managers.Regulator;
+import org.kingdoms.constants.land.structures.managers.Regulator.Attribute;
+import org.kingdoms.constants.player.DefaultKingdomPermission;
+import org.kingdoms.constants.player.KingdomPlayer;
+
 import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.ability.AddonAbility;
@@ -119,6 +104,7 @@ import com.projectkorra.projectkorra.airbending.AirShield;
 import com.projectkorra.projectkorra.airbending.AirSpout;
 import com.projectkorra.projectkorra.airbending.AirSuction;
 import com.projectkorra.projectkorra.airbending.AirSwipe;
+import com.projectkorra.projectkorra.board.BendingBoardManager;
 import com.projectkorra.projectkorra.configuration.ConfigManager;
 import com.projectkorra.projectkorra.earthbending.EarthBlast;
 import com.projectkorra.projectkorra.earthbending.passive.EarthPassive;
@@ -146,6 +132,11 @@ import com.projectkorra.projectkorra.waterbending.WaterSpout;
 import br.net.fabiozumbi12.RedProtect.Bukkit.RedProtect;
 import br.net.fabiozumbi12.RedProtect.Bukkit.Region;
 import br.net.fabiozumbi12.RedProtect.Bukkit.API.RedProtectAPI;
+import me.markeh.factionsframework.entities.FPlayer;
+import me.markeh.factionsframework.entities.FPlayers;
+import me.markeh.factionsframework.entities.Faction;
+import me.markeh.factionsframework.entities.Factions;
+import me.markeh.factionsframework.enums.Rel;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -1302,7 +1293,7 @@ public class GeneralMethods {
 
 			if (trans.contains(block.getType())) {
 				continue;
-			} else if (ignoreTempBlocks && (TempBlock.isTempBlock(block) && !WaterAbility.isBendableWaterTempBlock(block))) {
+			} else if (ignoreTempBlocks && (TempBlock.isTempBlock(block) && !WaterAbility.isBendableWaterTempBlock(block) && !EarthAbility.isBendableEarthTempBlock(block))) {
 				continue;
 			} else {
 				location.subtract(vec);
@@ -1593,7 +1584,7 @@ public class GeneralMethods {
 
 		final Plugin wgp = pm.getPlugin("WorldGuard");
 		//final Plugin psp = pm.getPlugin("PreciousStones");
-		final Plugin facsfw = pm.getPlugin("Factions");
+		final Plugin facsfw = pm.getPlugin("FactionsFramework");
 		final Plugin twnp = pm.getPlugin("Towny");
 		final Plugin gpp = pm.getPlugin("GriefPrevention");
 		final Plugin lwc = pm.getPlugin("LWC");
@@ -1651,8 +1642,7 @@ public class GeneralMethods {
 					}
 				}
 			}
-			//Returns true if you can't build
-			/*
+
 			if (facsfw != null && respectFactions) {
 				final FPlayer fPlayer = FPlayers.getBySender(player);
 				final Faction faction = Factions.getFactionAt(location);
@@ -1661,61 +1651,11 @@ public class GeneralMethods {
 				if (!(faction.isNone() || fPlayer.getFaction().equals(faction) || relation == Rel.ALLY)) {
 					return true;
 				}
-			}*/
-
-			if (facsfw != null && respectFactions) {
-				final MPlayer mplayer = MPlayer.get(player);
-				final Faction faction = BoardColl.get().getFactionAt(PS.valueOf(location));	
-				 LocalDate date = LocalDate.now();
-			     DayOfWeek day = DayOfWeek.of(date.get(ChronoField.DAY_OF_WEEK));
-			     switch (day) {
-			         case SATURDAY:
-			         case SUNDAY:
-						if (!(mplayer.isOverriding() || MConf.get().playersWhoBypassAllProtection.contains(player.getName()) || 
-								faction.isPlayerPermitted(mplayer, MPerm.ID_BUILD) || faction.isNone() || mplayer.getFaction().getRelationTo(faction) == Rel.ENEMY)) {
-							return true;
-						}
-			         default:
-						if (!(mplayer.isOverriding() || MConf.get().playersWhoBypassAllProtection.contains(player.getName()) || 
-								faction.isPlayerPermitted(mplayer, MPerm.ID_BUILD) || faction.isNone())) {
-							return true;
-						}
-			     }
 			}
 
 			if (twnp != null && respectTowny) {
-				final Towny twn = (Towny) twnp;
-
-				WorldCoord worldCoord;
-
-				try {
-					final TownyWorld tWorld = TownyUniverse.getDataSource().getWorld(world.getName());
-					worldCoord = new WorldCoord(tWorld.getName(), Coord.parseCoord(location));
-					final boolean bBuild = PlayerCacheUtil.getCachePermission(player, location, Material.DIRT, TownyPermission.ActionType.BUILD);
-
-					if (!bBuild) {
-						final PlayerCache cache = twn.getCache(player);
-						final TownBlockStatus status = cache.getStatus();
-
-						if (((status == TownBlockStatus.ENEMY) && TownyWarConfig.isAllowingAttacks())) {
-							try {
-								TownyWar.callAttackCellEvent(twn, player, location.getBlock(), worldCoord);
-							} catch (final Exception e) {
-								TownyMessaging.sendErrorMsg(player, e.getMessage());
-							}
-							return true;
-						} else if (status == TownBlockStatus.WARZONE) {
-
-						} else {
-							return true;
-						}
-
-						if ((cache.hasBlockErrMsg())) {
-							TownyMessaging.sendErrorMsg(player, cache.getBlockErrMsg());
-						}
-					}
-				} catch (final Exception e1) {
-					TownyMessaging.sendErrorMsg(player, TownySettings.getLangString("msg_err_not_configured"));
+				if (!PlayerCacheUtil.getCachePermission(player, location, Material.DIRT, ActionType.BUILD)) {
+					return true;
 				}
 			}
 
@@ -1745,15 +1685,35 @@ public class GeneralMethods {
 			}
 
 			if (kingdoms != null && respectKingdoms) {
-				final KingdomPlayer kPlayer = GameManagement.getPlayerManager().getOfflineKingdomPlayer(player).getKingdomPlayer();
-				if (kPlayer.getKingdom() != null) {
-					final SimpleChunkLocation chunkLocation = new SimpleChunkLocation(location.getChunk());
-					final Land land = GameManagement.getLandManager().getOrLoadLand(chunkLocation);
-					final UUID owner = land.getOwnerUUID();
-					if (owner != null) {
-						if (!kPlayer.getKingdom().getKing().equals(owner)) {
-							return true;
+				final KingdomPlayer kPlayer = KingdomPlayer.getKingdomPlayer(player);
+				final Land land = Land.getLand(location);
+				final boolean protectDuringInvasions = ConfigManager.getConfig().getBoolean("Properties.RegionProtection.Kingdoms.ProtectDuringInvasions");
+				if (land != null) {
+					final Kingdom kingdom = land.getKingdom();
+					if (kPlayer.isAdmin()) {
+						return false;
+					}
+					if (land.getInvasion() != null && !protectDuringInvasions) {
+						final Invasion invasion = land.getInvasion();
+						if (invasion.getInvader().equals(kPlayer) && invasion.getDefender().equals(land)) {
+							return false;
 						}
+					}
+					if (land.getStructure() != null && land.getStructure() instanceof Regulator) {
+						if (((Regulator) land.getStructure()).hasAttribute(player, Attribute.BUILD)) {
+							// There is a regulator on site which allows the player to build; allow bending
+							return false;
+						}
+					}
+					if (!kPlayer.hasKingdom()) {
+						// Player has no kingdom, deny
+						return true;
+					} else if (kPlayer.getKingdom().equals(kingdom) && !kPlayer.hasPermission(DefaultKingdomPermission.BUILD)) {
+						// Player is a member of this kingdom but cannot build here, deny
+						return true;
+					} else if (!kPlayer.getKingdom().equals(kingdom) && !kPlayer.getKingdom().hasAttribute(kingdom, KingdomRelation.Attribute.BUILD)) {
+						// Player is not a member of this kingdom and cannot build here, deny
+						return true;
 					}
 				}
 
@@ -1954,6 +1914,7 @@ public class GeneralMethods {
 			GeneralMethods.createBendingPlayer(player.getUniqueId(), player.getName());
 			PassiveManager.registerPassives(player);
 		}
+		BendingBoardManager.reload();
 		plugin.updater.checkUpdate();
 		ProjectKorra.log.info("Reload complete");
 	}
@@ -2096,7 +2057,7 @@ public class GeneralMethods {
 
 		final Plugin wgp = pm.getPlugin("WorldGuard");
 		final Plugin psp = pm.getPlugin("PreciousStones");
-		final Plugin fcp = pm.getPlugin("Factions");
+		final Plugin fcp = pm.getPlugin("FactionsFramework");
 		final Plugin twnp = pm.getPlugin("Towny");
 		final Plugin gpp = pm.getPlugin("GriefPrevention");
 		final Plugin lwc = pm.getPlugin("LWC");
@@ -2111,7 +2072,7 @@ public class GeneralMethods {
 			writeToDebug("PreciousStones v" + psp.getDescription().getVersion());
 		}
 		if (fcp != null && respectFactions) {
-			writeToDebug("Factions v" + fcp.getDescription().getVersion());
+			writeToDebug("FactionsFramework v" + fcp.getDescription().getVersion());
 		}
 		if (twnp != null && respectTowny) {
 			writeToDebug("Towny v" + twnp.getDescription().getVersion());
