@@ -76,16 +76,9 @@
     </dependency>
     <!-- Factions -->
     <dependency>
-      <groupId>com.massivecraft</groupId>
-      <artifactId>Factions</artifactId>
-      <version>1.2.3</version>
-      <scope>provided</scope>
-  </dependency>
-  <!-- massivecore -->
-    <dependency>
-      <groupId>com.massivecraft</groupId>
-      <artifactId>massivecore</artifactId>
-      <version>1.2.3</version>
+      <groupId>me.markeh</groupId>
+      <artifactId>factionsframework</artifactId>
+      <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
     <!-- GriefPrevention -->
@@ -177,13 +170,6 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-   <!-- XKingdoms -->
-    <dependency>
-      <groupId>org.kingdoms</groupId>
-      <artifactId>XKingdoms</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
     </dependency>
     <!-- PlaceholderAPI -->
     <dependency>
