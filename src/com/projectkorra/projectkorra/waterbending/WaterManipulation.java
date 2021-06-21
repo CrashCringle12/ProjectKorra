@@ -283,7 +283,7 @@ public class WaterManipulation extends WaterAbility {
 							}
 							final Location location = this.player.getEyeLocation();
 							final Vector vector = location.getDirection();
-							entity.setVelocity(vector.normalize().multiply(this.knockback));
+							GeneralMethods.setVelocity(this, entity, vector.normalize().multiply(this.knockback));
 
 							if (this.bPlayer.isAvatarState()) {
 								this.damage = getConfig().getDouble("Abilities.Avatar.AvatarState.Water.WaterManipulation.Damage");
@@ -364,7 +364,7 @@ public class WaterManipulation extends WaterAbility {
 				AFFECTED_BLOCKS.put(block, block);
 			}
 			if (PhaseChange.getFrozenBlocksAsBlock().contains(block)) {
-				PhaseChange.getFrozenBlocksAsBlock().remove(block);
+				PhaseChange.thaw(block);
 			}
 			new TempBlock(block, Material.WATER);
 		} else {

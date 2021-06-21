@@ -75,12 +75,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.kingdoms.constants.kingdom.Kingdom;
-import org.kingdoms.constants.kingdom.KingdomRelation;
-import org.kingdoms.constants.land.Invasion;
+import org.kingdoms.constants.kingdom.model.KingdomRelation;
 import org.kingdoms.constants.land.Land;
 import org.kingdoms.constants.land.structures.managers.Regulator;
 import org.kingdoms.constants.land.structures.managers.Regulator.Attribute;
-import org.kingdoms.constants.player.KingdomPermission;
+import org.kingdoms.constants.player.DefaultKingdomPermission;
 import org.kingdoms.constants.player.KingdomPlayer;
 
 import com.projectkorra.projectkorra.Element.SubElement;
@@ -108,6 +107,7 @@ import com.projectkorra.projectkorra.board.BendingBoardManager;
 import com.projectkorra.projectkorra.configuration.ConfigManager;
 import com.projectkorra.projectkorra.earthbending.EarthBlast;
 import com.projectkorra.projectkorra.earthbending.passive.EarthPassive;
+import com.projectkorra.projectkorra.event.AbilityVelocityAffectEntityEvent;
 import com.projectkorra.projectkorra.event.BendingPlayerCreationEvent;
 import com.projectkorra.projectkorra.event.BendingReloadEvent;
 import com.projectkorra.projectkorra.event.PlayerBindChangeEvent;
@@ -121,8 +121,7 @@ import com.projectkorra.projectkorra.util.BlockCacheElement;
 import com.projectkorra.projectkorra.util.ColoredParticle;
 import com.projectkorra.projectkorra.util.MovementHandler;
 import com.projectkorra.projectkorra.util.ParticleEffect;
-import com.projectkorra.projectkorra.util.ReflectionHandler;
-import com.projectkorra.projectkorra.util.ReflectionHandler.PackageType;
+
 import com.projectkorra.projectkorra.util.TempArmor;
 import com.projectkorra.projectkorra.util.TempArmorStand;
 import com.projectkorra.projectkorra.util.TempBlock;
@@ -151,25 +150,17 @@ public class GeneralMethods {
 	private static final ArrayList<Ability> INVINCIBLE = new ArrayList<>();
 	private static ProjectKorra plugin;
 
-	private static Method getAbsorption;
-	private static Method setAbsorption;
-	private static Method getHandle;
+
 
 	public GeneralMethods(final ProjectKorra plugin) {
 		GeneralMethods.plugin = plugin;
 
-		try {
-			getAbsorption = ReflectionHandler.getMethod("EntityHuman", PackageType.MINECRAFT_SERVER, "getAbsorptionHearts");
-			setAbsorption = ReflectionHandler.getMethod("EntityHuman", PackageType.MINECRAFT_SERVER, "setAbsorptionHearts", Float.class);
-			getHandle = ReflectionHandler.getMethod("CraftPlayer", PackageType.CRAFTBUKKIT_ENTITY, "getHandle");
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+
 	}
 
 	/**
 	 * Checks to see if an AbilityExists. Uses method
-	 * {@link #getAbility(String)} to check if it exists.
+	 * {@link CoreAbility#getAbility(String)} to check if it exists.
 	 *
 	 * @param string Ability Name
 	 * @return true if ability exists
@@ -467,9 +458,6 @@ public class GeneralMethods {
 						if (split[0].contains("r")) {
 							subelements.add(Element.BLUE_FIRE);
 						}
-						if (split[0].contains("o")) {
-							subelements.add(Element.POLLUTED);
-						}
 
 						if (hasAddon) {
 							final CopyOnWriteArrayList<String> addonClone = new CopyOnWriteArrayList<String>(Arrays.asList(split[split.length - 1].split(",")));
@@ -680,26 +668,25 @@ public class GeneralMethods {
 		ActionBar.sendActionBar(displayedMessage, player);
 	}
 
+	/**
+	 * Gets the number of absorption hearts of a specified {@link Player}.
+	 * @param player the {@link Player} to get the absorption hearts of.
+	 * @deprecated Use {@link Player#getAbsorptionAmount()}.
+	 */
+	@Deprecated
 	public static float getAbsorbationHealth(final Player player) {
-
-		try {
-			final Object entityplayer = getHandle.invoke(player);
-			final Object hearts = getAbsorption.invoke(entityplayer);
-			return (float) hearts;
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
+		return (float) player.getAbsorptionAmount();
 	}
 
+	/**
+	 * Sets the number of absorption hearts of a specified {@link Player}.
+	 * @param player the {@link Player} to set the absorption hearts of.
+	 * @param hearts a float representing the number of hearts to set.
+	 * @deprecated Use {@link Player#setAbsorptionAmount(double)}
+	 */
+	@Deprecated
 	public static void setAbsorbationHealth(final Player player, final float hearts) {
-
-		try {
-			final Object entityplayer = getHandle.invoke(player);
-			setAbsorption.invoke(entityplayer, hearts);
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+		player.setAbsorptionAmount(hearts);
 	}
 
 	public static int getArmorTier(Material mat) {
@@ -1563,7 +1550,7 @@ public class GeneralMethods {
 		final boolean respectGriefPrevention = ConfigManager.defaultConfig.get().getBoolean("Properties.RegionProtection.RespectGriefPrevention");
 		final boolean respectLWC = ConfigManager.defaultConfig.get().getBoolean("Properties.RegionProtection.RespectLWC");
 		final boolean respectResidence = ConfigManager.defaultConfig.get().getBoolean("Properties.RegionProtection.Residence.Respect");
-		final boolean respectKingdoms = ConfigManager.defaultConfig.get().getBoolean("Properties.RegionProtection.RespectKingdoms");
+		final boolean respectKingdoms = ConfigManager.defaultConfig.get().getBoolean("Properties.RegionProtection.Kingdoms.Respect");
 		final boolean respectRedProtect = ConfigManager.defaultConfig.get().getBoolean("Properties.RegionProtection.RespectRedProtect");
 
 		boolean isIgnite = false;
@@ -1693,33 +1680,18 @@ public class GeneralMethods {
 				final boolean protectDuringInvasions = ConfigManager.getConfig().getBoolean("Properties.RegionProtection.Kingdoms.ProtectDuringInvasions");
 				if (land != null) {
 					final Kingdom kingdom = land.getKingdom();
-					if (kPlayer.isAdmin()) {
+					if (kPlayer.isAdmin()
+							|| (!protectDuringInvasions && !land.getInvasions().isEmpty() && land.getInvasions().values().stream().anyMatch(i -> i.getInvader().equals(kPlayer))) // Protection during invasions is off, and player is currently invading; allow
+							|| (land.getStructure() != null && land.getStructure() instanceof Regulator && ((Regulator) land.getStructure()).hasAttribute(player, Attribute.BUILD))) { // There is a regulator on site which allows the player to build; allow
 						return false;
 					}
-					if (land.getInvasion() != null && !protectDuringInvasions) {
-						final Invasion invasion = land.getInvasion();
-						if (invasion.getInvader().equals(kPlayer) && invasion.getDefender().equals(land)) {
-							return false;
-						}
-					}
-					if (land.getStructure() != null && land.getStructure() instanceof Regulator) {
-						final Regulator regulator = (Regulator) land.getStructure();
-						if (regulator.hasAttribute(player, Attribute.BUILD)) {
-							// There is a regulator on site which allows the player to build; allow bending
-							return false;
-						}
-					}
-					if (!kPlayer.hasKingdom()) {
-						// Player has no kingdom, deny
-						return true;
-					} else if (kPlayer.getKingdom().equals(kingdom) && !kPlayer.hasPermission(KingdomPermission.BUILD)) {
-						// Player is a member of this kingdom but cannot build here, deny
-						return true;
-					} else if (!kPlayer.getKingdom().equals(kingdom) && !kPlayer.getKingdom().hasAttribute(kingdom, KingdomRelation.Attribute.BUILD)) {
-						// Player is not a member of this kingdom and cannot build here, deny
+					if (!kPlayer.hasKingdom() // Player has no kingdom; deny
+							|| (kPlayer.getKingdom().equals(kingdom) && !kPlayer.hasPermission(DefaultKingdomPermission.BUILD)) // Player is a member of this kingdom but cannot build here; deny
+							|| (!kPlayer.getKingdom().equals(kingdom) && !kPlayer.getKingdom().hasAttribute(kingdom, KingdomRelation.Attribute.BUILD))) { // Player is not a member of this kingdom and cannot build here; deny
 						return true;
 					}
 				}
+
 			}
 
 			if (redprotect != null && respectRedProtect) {
@@ -2277,9 +2249,6 @@ public class GeneralMethods {
 		if (bPlayer.hasSubElement(Element.BLUE_FIRE)) {
 			subs.append("r");
 		}
-		if (bPlayer.hasSubElement(Element.POLLUTED)) {
-			subs.append("o");
-		}
 		boolean hasAddon = false;
 		for (final Element element : bPlayer.getSubElements()) {
 			if (Arrays.asList(Element.getAddonSubElements()).contains(element)) {
@@ -2524,5 +2493,52 @@ public class GeneralMethods {
 			default:
 				return false;
 		}
+	}
+
+	@Deprecated
+	public static void setVelocity(Entity entity, Vector vector) {
+		setVelocity(null,entity,vector);
+	}
+	
+	public static void setVelocity(Ability ability, Entity entity, Vector vector) {
+		final AbilityVelocityAffectEntityEvent event = new AbilityVelocityAffectEntityEvent(ability, entity, vector);
+		Bukkit.getServer().getPluginManager().callEvent(event);
+		if (event.isCancelled()) 
+			return;
+		
+		Vector velocity = event.getVelocity();
+		if(velocity == null || Double.isNaN(velocity.length()))
+		    return;
+		
+		if (entity instanceof TNTPrimed) {
+			if (ConfigManager.defaultConfig.get().getBoolean("Properties.BendingAffectFallingSand.TNT")) {
+				velocity.multiply(ConfigManager.defaultConfig.get().getDouble("Properties.BendingAffectFallingSand.TNTStrengthMultiplier"));
+			}
+		} else if (entity instanceof FallingBlock) {
+			if (ConfigManager.defaultConfig.get().getBoolean("Properties.BendingAffectFallingSand.Normal")) {
+				velocity.multiply(ConfigManager.defaultConfig.get().getDouble("Properties.BendingAffectFallingSand.NormalStrengthMultiplier"));
+			}
+		}
+
+		// Attempt to stop velocity from going over the packet cap.
+		if (velocity.getX() > 4) {
+			velocity.setX(4);
+		} else if (velocity.getX() < -4) {
+			velocity.setX(-4);
+		}
+
+		if (velocity.getY() > 4) {
+			velocity.setY(4);
+		} else if (velocity.getY() < -4) {
+			velocity.setY(-4);
+		}
+
+		if (velocity.getZ() > 4) {
+			velocity.setZ(4);
+		} else if (velocity.getZ() < -4) {
+			velocity.setZ(-4);
+		}
+
+		event.getAffected().setVelocity(velocity);
 	}
 }
