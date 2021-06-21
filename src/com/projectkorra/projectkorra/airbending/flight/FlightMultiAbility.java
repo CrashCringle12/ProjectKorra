@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import com.projectkorra.projectkorra.Element;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
 import com.projectkorra.projectkorra.ability.CoreAbility;
@@ -261,8 +262,14 @@ public class FlightMultiAbility extends FlightAbility implements MultiAbility {
 	}
 
 	private void particles() {
-		ParticleEffect.CLOUD.display(GeneralMethods.getRightSide(this.player.getLocation(), 0.55).add(this.player.getVelocity().clone()), 1, 0, 0, 0);
-		ParticleEffect.CLOUD.display(GeneralMethods.getLeftSide(this.player.getLocation(), 0.55).add(this.player.getVelocity().clone()), 1, 0, 0, 0);
+		if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+			ParticleEffect.SNEEZE.display(GeneralMethods.getRightSide(this.player.getLocation(), 0.55).add(this.player.getVelocity().clone()), 1, 0, 0, 0);
+			ParticleEffect.SNEEZE.display(GeneralMethods.getLeftSide(this.player.getLocation(), 0.55).add(this.player.getVelocity().clone()), 1, 0, 0, 0);
+		} else {
+			ParticleEffect.CLOUD.display(GeneralMethods.getRightSide(this.player.getLocation(), 0.55).add(this.player.getVelocity().clone()), 1, 0, 0, 0);
+			ParticleEffect.CLOUD.display(GeneralMethods.getLeftSide(this.player.getLocation(), 0.55).add(this.player.getVelocity().clone()), 1, 0, 0, 0);		
+	}
+
 	}
 
 	private String speed() {

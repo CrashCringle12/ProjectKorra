@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import com.projectkorra.projectkorra.GeneralMethods;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.ComboAbility;
 import com.projectkorra.projectkorra.ability.util.ComboManager.AbilityInformation;
@@ -128,7 +129,12 @@ public class Twister extends AirAbility implements ComboAbility {
 				final Vector animDir = GeneralMethods.rotateXZ(new Vector(1, 0, 1), i);
 				final Location animLoc = this.currentLoc.clone().add(animDir.multiply(animRadius));
 				animLoc.add(0, y, 0);
-				playAirbendingParticles(animLoc, 1, 0, 0, 0);
+				if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+					playPollutedAirbendingParticles(animLoc, 1, 0, 0, 0);
+
+				} else {
+					playAirbendingParticles(animLoc, 1, 0, 0, 0);
+				}
 			}
 		}
 		playAirbendingSound(this.currentLoc);

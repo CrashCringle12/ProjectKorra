@@ -12,9 +12,11 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
 import com.projectkorra.projectkorra.ability.AirAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.attribute.Attribute;
 import com.projectkorra.projectkorra.util.DamageHandler;
 
@@ -99,6 +101,7 @@ public class Suffocate extends AirAbility {
 			this.damage = getConfig().getDouble("Abilities.Avatar.AvatarState.Air.Suffocate.Damage");
 			this.range = getConfig().getDouble("Abilities.Avatar.AvatarState.Air.Suffocate.Range");
 		}
+
 
 		if (this.particleCount < 1) {
 			this.particleCount = 1;
@@ -201,6 +204,9 @@ public class Suffocate extends AirAbility {
 				final BukkitRunnable br2 = new BukkitRunnable() {
 					@Override
 					public void run() {
+						if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+							target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, (int) (Suffocate.this.slowRepeat * 20), 2));
+						}
 						target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (Suffocate.this.slowRepeat * 20), (int) Suffocate.this.slow));
 					}
 				};

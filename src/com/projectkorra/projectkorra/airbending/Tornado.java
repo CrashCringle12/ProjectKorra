@@ -11,9 +11,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.ElementalAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.attribute.Attribute;
 import com.projectkorra.projectkorra.command.Commands;
 
@@ -61,6 +63,10 @@ public class Tornado extends AirAbility {
 		this.random = new Random();
 		this.angles = new ConcurrentHashMap<>();
 
+		if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+			this.playerPushFactor += PollutedAbility.getPushFactor() * playerPushFactor - playerPushFactor;
+			this.npcPushFactor += PollutedAbility.getPushFactor() * npcPushFactor - npcPushFactor;
+		}
 		int angle = 0;
 		for (int i = 0; i <= this.maxHeight; i += (int) this.maxHeight / this.numberOfStreams) {
 			this.angles.put(i, angle);
@@ -190,7 +196,12 @@ public class Tornado extends AirAbility {
 
 				final Location effect = new Location(this.origin.getWorld(), x, y, z);
 				if (!GeneralMethods.isRegionProtectedFromBuild(this, effect)) {
-					playAirbendingParticles(effect, this.particleCount);
+					if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+						playPollutedAirbendingParticles(effect, this.particleCount);
+
+					} else {
+						playAirbendingParticles(effect, this.particleCount);
+					}
 					if (this.random.nextInt(20) == 0) {
 						playAirbendingSound(effect);
 					}

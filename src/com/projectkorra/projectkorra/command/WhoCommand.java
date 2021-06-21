@@ -284,6 +284,9 @@ public class WhoCommand extends PKCommand {
 					if (bPlayer.hasSubElement(Element.BLUE_FIRE)) {
 						sender.sendMessage(Element.BLUE_FIRE.getColor() + "    Can use Blue Fire");
 					}
+					if (bPlayer.hasSubElement(Element.POLLUTED)) {
+						sender.sendMessage(Element.POLLUTED.getColor() + "    Can use Polluted Air");
+					}
 					for (final SubElement se : Element.getAddonSubElements(Element.FIRE)) {
 						if (bPlayer.canUseSubElement(se)) {
 							sender.sendMessage(se.getColor() + "    Can " + (!se.getType().equals(ElementType.NO_SUFFIX) ? "" : "use ") + se.getName() + se.getType().getBend());

@@ -12,9 +12,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.FireAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.ability.util.Collision;
 import com.projectkorra.projectkorra.attribute.Attribute;
 import com.projectkorra.projectkorra.avatar.AvatarState;
@@ -55,6 +57,9 @@ public class AirShield extends AirAbility {
 		this.dynamicCooldown = getConfig().getBoolean("Abilities.Air.AirShield.DynamicCooldown"); //any unused duration from shield is removed from the cooldown
 		if (this.duration == 0) {
 			this.dynamicCooldown = false;
+		}
+		if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+			this.radius = radius * 1.5;
 		}
 		this.random = new Random();
 		this.angles = new HashMap<>();
@@ -188,7 +193,12 @@ public class AirShield extends AirAbility {
 
 			final Location effect = new Location(origin.getWorld(), x, y, z);
 			if (!GeneralMethods.isRegionProtectedFromBuild(this, effect)) {
-				playAirbendingParticles(effect, this.particles);
+				if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+					playPollutedAirbendingParticles(effect, this.particles);
+
+				} else {
+					playAirbendingParticles(effect, this.particles);
+				}
 				if (this.random.nextInt(4) == 0) {
 					playAirbendingSound(effect);
 				}

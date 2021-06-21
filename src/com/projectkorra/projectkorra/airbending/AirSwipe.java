@@ -13,16 +13,20 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.CoreAbility;
 import com.projectkorra.projectkorra.ability.ElementalAbility;
 import com.projectkorra.projectkorra.ability.FireAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.ability.util.Collision;
 import com.projectkorra.projectkorra.attribute.Attribute;
 import com.projectkorra.projectkorra.command.Commands;
@@ -116,7 +120,9 @@ public class AirSwipe extends AirAbility {
 			this.range = getConfig().getDouble("Abilities.Avatar.AvatarState.Air.AirSwipe.Range");
 			this.radius = getConfig().getDouble("Abilities.Avatar.AvatarState.Air.AirSwipe.Radius");
 		}
-
+		if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+			this.pushFactor += PollutedAbility.getPushFactor() * pushFactor - pushFactor;
+		}
 		this.start();
 	}
 
@@ -162,7 +168,12 @@ public class AirSwipe extends AirAbility {
 
 				location = location.clone().add(direction.clone().multiply(this.speed));
 				this.streams.put(direction, location);
-				playAirbendingParticles(location, this.particles, 0.2F, 0.2F, 0);
+				if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+					playPollutedAirbendingParticles(location, this.particles, 0.2F, 0.2F, 0);
+
+				} else {
+					playAirbendingParticles(location, this.particles, 0.2F, 0.2F, 0);
+				}
 				if (this.random.nextInt(4) == 0) {
 					playAirbendingSound(location);
 				}
@@ -238,6 +249,9 @@ public class AirSwipe extends AirAbility {
 					}
 					if (entity.getEntityId() != AirSwipe.this.player.getEntityId() && entity instanceof LivingEntity) {
 						if (entity instanceof Player) {
+							if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+								((Player) entity).addPotionEffect(new PotionEffect(PotionEffectType.POISON,2, 2));
+							}
 							if (Commands.invincible.contains(((Player) entity).getName())) {
 								return;
 							}
@@ -318,7 +332,12 @@ public class AirSwipe extends AirAbility {
 				this.damage *= factor;
 				this.pushFactor *= factor;
 			} else if (System.currentTimeMillis() >= this.getStartTime() + this.maxChargeTime) {
-				playAirbendingParticles(this.player.getEyeLocation(), this.particles);
+				if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+					playPollutedAirbendingParticles(this.player.getEyeLocation(), this.particles);
+				} else {
+					playAirbendingParticles(this.player.getEyeLocation(), this.particles);
+
+				}
 			}
 		}
 	}

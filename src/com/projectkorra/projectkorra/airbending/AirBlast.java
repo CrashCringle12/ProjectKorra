@@ -26,8 +26,10 @@ import org.bukkit.util.Vector;
 import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.FireAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.ability.util.Collision;
 import com.projectkorra.projectkorra.attribute.Attribute;
 import com.projectkorra.projectkorra.command.Commands;
@@ -157,6 +159,9 @@ public class AirBlast extends AirAbility {
 		this.random = new Random();
 		this.affectedLevers = new ArrayList<>();
 		this.affectedEntities = new ArrayList<>();
+		if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+			this.pushFactor += PollutedAbility.getPushFactor() * pushFactor - pushFactor;
+		}
 	}
 
 	private static void playOriginEffect(final Player player) {
@@ -178,8 +183,12 @@ public class AirBlast extends AirAbility {
 			ORIGINS.remove(player);
 			return;
 		}
-
-		playAirbendingParticles(origin, getSelectParticles());
+		if (BendingPlayer.getBendingPlayer(player).canUseSubElement(SubElement.POLLUTED)) {
+			playPollutedAirbendingParticles(origin, getSelectParticles());
+		} else {
+			playAirbendingParticles(origin, getSelectParticles());
+		}
+		
 	}
 
 	public static void progressOrigins() {
@@ -202,7 +211,14 @@ public class AirBlast extends AirAbility {
 
 	private void advanceLocation() {
 		if (this.showParticles) {
-			playAirbendingParticles(this.location, this.particles, 0.275F, 0.275F, 0.275F);
+			
+			if (BendingPlayer.getBendingPlayer(player).canUseSubElement(SubElement.POLLUTED)) {
+				playPollutedAirbendingParticles(this.location, this.particles, 0.275F, 0.275F, 0.275F);
+
+			} else {
+				playAirbendingParticles(this.location, this.particles, 0.275F, 0.275F, 0.275F);
+			}
+			
 		}
 		if (this.random.nextInt(4) == 0) {
 			playAirbendingSound(this.location);

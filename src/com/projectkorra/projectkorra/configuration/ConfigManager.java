@@ -598,7 +598,11 @@ public class ConfigManager {
 			config.addDefault("Properties.Air.Sound.Sound", "ENTITY_CREEPER_HURT");
 			config.addDefault("Properties.Air.Sound.Volume", 1);
 			config.addDefault("Properties.Air.Sound.Pitch", 2);
-
+			
+			config.addDefault("Properties.Air.Polluted.DamageFactor", 1.1);
+			config.addDefault("Properties.Air.Polluted.CooldownFactor", .9);
+			config.addDefault("Properties.Air.Polluted.PushFactor", 1.8);
+			
 			config.addDefault("Properties.Water.DynamicSourcing", true);
 			config.addDefault("Properties.Water.FreezePlayerHead", true);
 			config.addDefault("Properties.Water.FreezePlayerFeet", true);

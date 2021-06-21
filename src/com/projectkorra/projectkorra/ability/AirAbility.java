@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.util.Collision;
 import com.projectkorra.projectkorra.airbending.AirSpout;
 import com.projectkorra.projectkorra.airbending.Suffocate;
@@ -115,6 +116,17 @@ public abstract class AirAbility extends ElementalAbility {
 	}
 
 	/**
+	 * Plays an integer amount of air particles in a location.
+	 *
+	 * @param loc The location to use
+	 * @param amount The amount of particles
+	 */
+	public static void playPollutedAirbendingParticles(final Location loc, final int amount) {
+		playPollutedAirbendingParticles(loc, amount, Math.random(), Math.random(), Math.random());
+	}
+
+	
+	/**
 	 * Plays an integer amount of air particles in a location with a given
 	 * xOffset, yOffset, and zOffset.
 	 *
@@ -125,9 +137,12 @@ public abstract class AirAbility extends ElementalAbility {
 	 * @param zOffset The zOffset to use
 	 */
 	public static void playAirbendingParticles(final Location loc, final int amount, final double xOffset, final double yOffset, final double zOffset) {
-		getAirbendingParticles().display(loc, amount, xOffset, yOffset, zOffset);
+			getAirbendingParticles().display(loc, amount, xOffset, yOffset, zOffset);
 	}
 
+	public static void playPollutedAirbendingParticles(final Location loc, final int amount, final double xOffset, final double yOffset, final double zOffset) {
+			ParticleEffect.SNEEZE.display(loc, amount, xOffset, yOffset, zOffset);
+	}
 	/**
 	 * Plays the Airbending Sound at a location if enabled in the config.
 	 *
@@ -149,6 +164,15 @@ public abstract class AirAbility extends ElementalAbility {
 			}
 		}
 	}
+	/**
+	 * 
+	 * @return Material based on whether the player is a Polluted Airbender, Green Air if true, Config value if false.
+	 */
+	public Material getAirType() {
+		return getBendingPlayer().canUseSubElement(SubElement.POLLUTED) ? Material.VOID_AIR : Material.AIR;
+	}
+	
+	/**
 
 	/**
 	 * This method was used for the old collision detection system. Please see

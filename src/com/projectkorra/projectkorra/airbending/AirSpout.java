@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.ElementalAbility;
@@ -197,7 +198,12 @@ public class AirSpout extends AirAbility {
 			for (int i = 1; i <= dy; i++) {
 				index = index >= DIRECTIONS.length ? 0 : index + 1;
 				final Location effectloc2 = new Location(location.getWorld(), location.getX(), block.getY() + i, location.getZ());
-				playAirbendingParticles(effectloc2, 3, 0.4F, 0.4F, 0.4F);
+				if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+					playPollutedAirbendingParticles(effectloc2, 3, 0.4F, 0.4F, 0.4F);
+
+				} else {
+					playAirbendingParticles(effectloc2, 3, 0.4F, 0.4F, 0.4F);
+				}
 			}
 		}
 	}

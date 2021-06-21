@@ -75,12 +75,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.kingdoms.constants.kingdom.Kingdom;
-import org.kingdoms.constants.kingdom.model.KingdomRelation;
+import org.kingdoms.constants.kingdom.KingdomRelation;
 import org.kingdoms.constants.land.Invasion;
 import org.kingdoms.constants.land.Land;
 import org.kingdoms.constants.land.structures.managers.Regulator;
 import org.kingdoms.constants.land.structures.managers.Regulator.Attribute;
-import org.kingdoms.constants.player.DefaultKingdomPermission;
+import org.kingdoms.constants.player.KingdomPermission;
 import org.kingdoms.constants.player.KingdomPlayer;
 
 import com.projectkorra.projectkorra.Element.SubElement;
@@ -466,6 +466,9 @@ public class GeneralMethods {
 						}
 						if (split[0].contains("r")) {
 							subelements.add(Element.BLUE_FIRE);
+						}
+						if (split[0].contains("o")) {
+							subelements.add(Element.POLLUTED);
 						}
 
 						if (hasAddon) {
@@ -1700,7 +1703,8 @@ public class GeneralMethods {
 						}
 					}
 					if (land.getStructure() != null && land.getStructure() instanceof Regulator) {
-						if (((Regulator) land.getStructure()).hasAttribute(player, Attribute.BUILD)) {
+						final Regulator regulator = (Regulator) land.getStructure();
+						if (regulator.hasAttribute(player, Attribute.BUILD)) {
 							// There is a regulator on site which allows the player to build; allow bending
 							return false;
 						}
@@ -1708,7 +1712,7 @@ public class GeneralMethods {
 					if (!kPlayer.hasKingdom()) {
 						// Player has no kingdom, deny
 						return true;
-					} else if (kPlayer.getKingdom().equals(kingdom) && !kPlayer.hasPermission(DefaultKingdomPermission.BUILD)) {
+					} else if (kPlayer.getKingdom().equals(kingdom) && !kPlayer.hasPermission(KingdomPermission.BUILD)) {
 						// Player is a member of this kingdom but cannot build here, deny
 						return true;
 					} else if (!kPlayer.getKingdom().equals(kingdom) && !kPlayer.getKingdom().hasAttribute(kingdom, KingdomRelation.Attribute.BUILD)) {
@@ -1716,7 +1720,6 @@ public class GeneralMethods {
 						return true;
 					}
 				}
-
 			}
 
 			if (redprotect != null && respectRedProtect) {
@@ -2273,6 +2276,9 @@ public class GeneralMethods {
 		}
 		if (bPlayer.hasSubElement(Element.BLUE_FIRE)) {
 			subs.append("r");
+		}
+		if (bPlayer.hasSubElement(Element.POLLUTED)) {
+			subs.append("o");
 		}
 		boolean hasAddon = false;
 		for (final Element element : bPlayer.getSubElements()) {

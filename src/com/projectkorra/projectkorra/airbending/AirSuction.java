@@ -18,8 +18,10 @@ import org.bukkit.util.Vector;
 
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.CoreAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.ability.util.Collision;
 import com.projectkorra.projectkorra.attribute.Attribute;
 import com.projectkorra.projectkorra.command.Commands;
@@ -94,12 +96,20 @@ public class AirSuction extends AirAbility {
 		if (this.bPlayer.isAvatarState()) {
 			this.pushFactor = getConfig().getDouble("Abilities.Avatar.AvatarState.Air.AirSuction.Push");
 		}
+		if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+			this.pushFactor += PollutedAbility.getPushFactor() * pushFactor - pushFactor;
+		}
 
 		this.start();
 	}
 
 	private void advanceLocation() {
-		playAirbendingParticles(this.location, this.particleCount, 0.275F, 0.275F, 0.275F);
+		if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+			playPollutedAirbendingParticles(this.location, this.particleCount, 0.275F, 0.275F, 0.275F);
+
+		} else {
+			playAirbendingParticles(this.location, this.particleCount, 0.275F, 0.275F, 0.275F);
+		}
 		if (this.random.nextInt(4) == 0) {
 			playAirbendingSound(this.location);
 		}
@@ -257,8 +267,12 @@ public class AirSuction extends AirAbility {
 				remove();
 				return;
 			}
+			if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+				playPollutedAirbendingParticles(this.origin, 5, 0.5, 0.5, 0.5);
 
-			playAirbendingParticles(this.origin, 5, 0.5, 0.5, 0.5);
+			} else {
+				playAirbendingParticles(this.origin, 5, 0.5, 0.5, 0.5);
+			}
 		}
 	}
 

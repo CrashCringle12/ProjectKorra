@@ -14,6 +14,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ability.AirAbility;
 import com.projectkorra.projectkorra.ability.ElementalAbility;
@@ -238,7 +239,12 @@ public class AirScooter extends AirAbility {
 			final double y = r * Math.cos(this.phi);
 			final double z = r * Math.sin(theta) * Math.sin(this.phi);
 			origin.add(x, y, z);
-			playAirbendingParticles(origin, 1, 0F, 0F, 0F);
+			if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+				playPollutedAirbendingParticles(origin, 1, 0F, 0F, 0F);
+
+			} else {
+				playAirbendingParticles(origin, 1, 0F, 0F, 0F);
+			}
 			origin.subtract(x, y, z);
 		}
 		for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
@@ -247,7 +253,12 @@ public class AirScooter extends AirAbility {
 			final double y = r * Math.cos(this.phi);
 			final double z = r * Math.sin(theta) * Math.sin(this.phi);
 			origin2.subtract(x, y, z);
-			playAirbendingParticles(origin2, 1, 0F, 0F, 0F);
+			if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+				playPollutedAirbendingParticles(origin2, 1, 0F, 0F, 0F);
+
+			} else {
+				playAirbendingParticles(origin2, 1, 0F, 0F, 0F);
+			}
 			origin2.add(x, y, z);
 		}
 	}

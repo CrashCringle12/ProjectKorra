@@ -48,6 +48,7 @@ public class Element {
 	public static final Element AVATAR = new Element("Avatar", null);
 	public static final SubElement FLIGHT = new SubElement("Flight", AIR, ElementType.NO_SUFFIX);
 	public static final SubElement SPIRITUAL = new SubElement("Spiritual", AIR, ElementType.NO_SUFFIX);
+	public static final SubElement POLLUTED = new SubElement("Polluted", AIR);
 	public static final SubElement BLOOD = new SubElement("Blood", WATER);
 	public static final SubElement HEALING = new SubElement("Healing", WATER, ElementType.NO_SUFFIX);
 	public static final SubElement ICE = new SubElement("Ice", WATER);
@@ -59,9 +60,9 @@ public class Element {
 	public static final SubElement COMBUSTION = new SubElement("Combustion", FIRE);
 	public static final SubElement BLUE_FIRE = new SubElement("BlueFire", FIRE);
 
-	private static final Element[] ELEMENTS = { AIR, WATER, EARTH, FIRE, CHI, FLIGHT, SPIRITUAL, BLOOD, HEALING, ICE, PLANT, LAVA, METAL, SAND, LIGHTNING, COMBUSTION, BLUE_FIRE };
+	private static final Element[] ELEMENTS = { AIR, WATER, EARTH, FIRE, CHI, FLIGHT, SPIRITUAL, BLOOD, HEALING, ICE, PLANT, LAVA, METAL, SAND, LIGHTNING, COMBUSTION, BLUE_FIRE, POLLUTED };
 	private static final Element[] MAIN_ELEMENTS = { AIR, WATER, EARTH, FIRE, CHI };
-	private static final SubElement[] SUB_ELEMENTS = { FLIGHT, SPIRITUAL, BLOOD, HEALING, ICE, PLANT, LAVA, METAL, SAND, LIGHTNING, COMBUSTION, BLUE_FIRE };
+	private static final SubElement[] SUB_ELEMENTS = { FLIGHT, SPIRITUAL, BLOOD, HEALING, ICE, PLANT, LAVA, METAL, SAND, LIGHTNING, COMBUSTION, BLUE_FIRE, POLLUTED };
 
 	private final String name;
 	private final ElementType type;
@@ -140,7 +141,15 @@ public class Element {
 
 	@Override
 	public String toString() {
-		return (this == Element.BLUE_FIRE) ? this.getColor() + "Blue Fire": this.getColor() + this.getName();
+			if (this == Element.BLUE_FIRE) {
+				return this.getColor() + "Blue Fire";
+			} 
+			if (this == Element.POLLUTED) {
+				return this.getColor() + "Polluted Air";
+			}
+			else {
+				return this.getColor() + this.getName();
+			}
 	}
 
 	public static Element getElement(final String name) {

@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
 import com.projectkorra.projectkorra.ability.AirAbility;
@@ -142,8 +143,13 @@ public class AirStream extends AirAbility implements ComboAbility {
 				public void run() {
 					for (int angle = -180; angle <= 180; angle += 45) {
 						final Vector orthog = GeneralMethods.getOrthogonalVector(this.dir.clone(), angle, 0.5);
-						playAirbendingParticles(this.loc.clone().add(orthog), 1, 0F, 0F, 0F);
-					}
+						if (getBendingPlayer().canUseSubElement(SubElement.POLLUTED)) {
+							playPollutedAirbendingParticles(this.loc.clone().add(orthog), 1, 0F, 0F, 0F);
+
+						} else {
+							playAirbendingParticles(this.loc.clone().add(orthog), 1, 0F, 0F, 0F);
+						
+					}					}
 				}
 			};
 			br.runTaskLater(ProjectKorra.plugin, i * 2);

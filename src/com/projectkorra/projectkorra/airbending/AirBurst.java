@@ -9,8 +9,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.Element.SubElement;
 import com.projectkorra.projectkorra.ability.AirAbility;
+import com.projectkorra.projectkorra.ability.BlueFireAbility;
+import com.projectkorra.projectkorra.ability.PollutedAbility;
 import com.projectkorra.projectkorra.attribute.Attribute;
 
 public class AirBurst extends AirAbility {
@@ -60,7 +64,9 @@ public class AirBurst extends AirAbility {
 		this.particlePercentage = getConfig().getDouble("Abilities.Air.AirBurst.ParticlePercentage");
 		this.blasts = new ArrayList<>();
 		this.affectedEntities = new ArrayList<>();
-
+		if(bPlayer.canUseSubElement(SubElement.POLLUTED)) {
+			this.pushFactor += PollutedAbility.getPushFactor() * pushFactor - pushFactor;
+		}
 		if (this.bPlayer.isAvatarState()) {
 			this.chargeTime = getConfig().getLong("Abilities.Avatar.AvatarState.Air.AirBurst.ChargeTime");
 			this.damage = getConfig().getDouble("Abilities.Avatar.AvatarState.Air.AirBurst.Damage");
@@ -100,7 +106,12 @@ public class AirBurst extends AirAbility {
 			}
 		} else if (this.isCharged) {
 			final Location location = this.player.getEyeLocation();
-			playAirbendingParticles(location, this.sneakParticles);
+			if (BendingPlayer.getBendingPlayer(player).canUseSubElement(SubElement.POLLUTED)) {
+				playPollutedAirbendingParticles(location, this.sneakParticles);
+
+			} else {
+				playAirbendingParticles(location, this.sneakParticles);
+			}
 		}
 	}
 
